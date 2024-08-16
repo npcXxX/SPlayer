@@ -1,0 +1,42 @@
+name: Build Docker Image and Save as Artifact
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+
+    - name: 设置 Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: 构建 Docker 镜像
+      uses: docker/build-push-action@v5
+      with:
+        context: .  # 根目录为上下文
+        file: ./Dockerfile  # Dockerfile 的路
+        push: false
+        tags: splayer:latest
+        load: true  # 加载镜像到本地缓存，以便后续步骤使用
+
+    - name: 验证镜像是否存在
+      run: docker images | grep splayer
+
+    - name: 保存 Docker 镜像到文件
+      run: docker save -o splayer_image.tar splayer:latest
+
+    - name: 上传镜像文件为 Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: splayer_image
+        path: splayer_image.tar
