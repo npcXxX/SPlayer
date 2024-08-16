@@ -16,7 +16,10 @@ RUN [ ! -e ".env" ] && cp .env.example .env || true
 RUN npm run build
 
 # nginx
-FROM nginx:1.25.3-alpine-slim as app
+FROM nginxinc/nginx-unprivileged:stable-alpine as app
+
+# 使用 root 用户运行
+USER root
 
 COPY --from=builder /app/out/renderer /usr/share/nginx/html
 
